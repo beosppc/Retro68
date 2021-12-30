@@ -78,10 +78,12 @@ jobs:
   - script: |
       docker cp -L nix:result - | tar x --strip-components 1
     displayName: Copy result out of docker
-
   - publish: Applications
     artifact: 68K Applications
-    
+  - script: |
+      df
+    displayName: show free disk space
+    condition: always()
 
 - job: nix_ppc
   pool:
@@ -101,3 +103,7 @@ jobs:
     displayName: Copy result out of docker
   - publish: Applications
     artifact: PowerPC Applications
+  - script: |
+      df
+    displayName: show free disk space
+    condition: always()
