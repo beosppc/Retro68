@@ -93,7 +93,8 @@ jobs:
     submodules: true
   - script: |
       docker run -i --name nix -v`pwd`:/src nixos/nix:latest <<EOF
-        nix-channel --add https://nixos.org/channels/nixos-21.11 nixpkgs
+        chmod 1777 /tmp
+        nix-channel --add https1://nixos.org/channels/nixos-21.11 nixpkgs
         nix-channel --update
         nix-build src -A powerpc.retro68.samples
       EOF
