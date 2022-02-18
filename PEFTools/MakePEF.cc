@@ -96,11 +96,12 @@ public:
 
     int nameOffset;
     bool weak;
+    bool allowlibprefix;
     
     std::vector<int> symNameOffsets;
     
-    ImportLib(StringTable& stringTable, std::string path, std::string base, std::string mem)
-        : path(path), base(base), mem(mem), weak(false)
+    ImportLib(StringTable& stringTable, std::string path, std::string base, std::string mem, bool allowlibprefix)
+        : path(path), base(base), mem(mem), weak(false), allowlibprefix(allowlibprefix)
     {
         std::string name = mem.empty() ? base : mem;
 
@@ -114,7 +115,8 @@ public:
         if(dotIndex)
         {
             name = name.substr(0,dotIndex);
-            if(name.substr(0,3) == "lib")
+            // in BeOS, lib is a valid prefix for a library veing imported
+            if(!allowlibprefix && name.substr(0,3) == "lib")
                 name = name.substr(3);
         }
 
@@ -276,7 +278,7 @@ public:
     }
 };
 
-void mkpef(const std::string& inFn, const std::string& outFn)
+void mkpef(const std::string& inFn, const std::string& outFn, const bool isBeOS)
 {
     std::ifstream in(inFn);
 
@@ -344,7 +346,7 @@ void mkpef(const std::string& inFn, const std::string& outFn)
             p += strlen(p) + 1;
             std::string mem = p;
             p += strlen(p) + 1;
-            importLibs.push_back(ImportLib(stringTable,path,base,mem));
+            importLibs.push_back(ImportLib(stringTable,path,base,mem,isBeOS));
             if(verboseFlag)
                 std::cerr << "Import: " << path << ", " << base << ", " << mem << '\n';
         }
@@ -607,12 +609,15 @@ int main (int argc, char * const argv[]) {
     std::string inputFn;
     bool hadOutput = false;
     std::string outputFn = "";
+    bool isBeOS = false;
     
     for(int i=1;i<argc;i++)
     {
         std::string arg = argv[i];
         if(arg == "-v")
             verboseFlag = true;
+        if(arg=="-beos")
+            isBeOS = true;
         else if(arg == "-o")
         {
             i++;
@@ -651,7 +656,7 @@ int main (int argc, char * const argv[]) {
         std::cerr << "makepef: no output file specified.\n";
         return 1;
     }
-    mkpef(inputFn, outputFn);
+    mkpef(inputFn, outputFn, isBeOS);
     return 0;
 }
 
